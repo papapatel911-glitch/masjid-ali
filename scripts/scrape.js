@@ -134,8 +134,8 @@ function extractFallback(text) {
 }
 
 async function scrapePrayerTimes() {
-  console.log('Fetching https://masjidali.ca/daily-prayers/ ...');
-  const html = await fetchUrl('https://masjidali.ca/daily-prayers/');
+  console.log('Fetching https://masjidali.ca/prayer-services/ ...');
+  const html = await fetchUrl('https://masjidali.ca/prayer-services/');
 
   console.log('Extracting prayer times...');
   let prayers = extractFromText(html);
@@ -172,7 +172,7 @@ async function main() {
 
     const output = {
       date: new Date().toISOString(),
-      scraped_from: 'https://masjidali.ca/daily-prayers/',
+      scraped_from: 'https://masjidali.ca/prayer-services/',
       prayers: {
         fajr:    prayers.fajr    || null,
         dhuhr:   prayers.dhuhr   || null,
