@@ -1,12 +1,11 @@
 {
-  "date": "2024-01-01T00:00:00.000Z",
+  "date": "2026-03-29T17:30:45.362Z",
   "scraped_from": "https://masjidali.ca/daily-prayers/",
-  "note": "This file is auto-updated by the GitHub Actions scraper",
   "prayers": {
-    "fajr": "06:15",
-    "dhuhr": "13:30",
-    "asr": "16:30",
-    "maghrib": "18:45",
-    "isha": "19:45"
+    "fajr": "06:30",
+    "dhuhr": "13:45",
+    "asr": "18:15",
+    "maghrib": "19:40",
+    "isha": null
   }
 }
