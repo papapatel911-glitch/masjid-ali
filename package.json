@@ -1,0 +1,13 @@
+{
+  "name": "masjid-ali-prayer-times",
+  "version": "1.0.0",
+  "description": "Prayer times PWA for Masjid Ali, Scarborough",
+  "private": true,
+  "scripts": {
+    "scrape": "node scripts/scrape.js",
+    "dev": "npx serve public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Masjid Ali">
+  <meta name="theme-color" content="#0d1f14">
+  <title>Masjid Ali — Prayer Times</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-deep: #0d1f14;
+      --green-dark: #132a1a;
+      --green-card: #1a3322;
+      --green-mid:  #1f4029;
+      --green-border: #2a5438;
+      --green-accent: #3a7a50;
+      --gold: #c9a227;
+      --gold-light: #e0bc5a;
+      --text-primary: #f0ede4;
+      --text-muted: #8aad94;
+      --next-glow: rgba(201,162,39,0.15);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--green-deep);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 20px 24px 12px;
+      background: var(--green-dark);
+      border-bottom: 1px solid var(--green-border);
+    }
+
+    .mosque-name {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--text-primary);
+    }
+
+    .mosque-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .date-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .date-display {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .clock {
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    /* ── Next prayer banner ── */
+    .next-banner {
+      margin: 16px 16px 0;
+      padding: 18px 20px;
+      background: var(--green-card);
+      border: 1px solid var(--gold);
+      border-radius: 16px;
+      box-shadow: 0 0 24px var(--next-glow);
+    }
+
+    .next-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+
+    .next-prayer-name {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .next-time {
+      font-size: 17px;
+      color: var(--gold-light);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .countdown {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .countdown span {
+      color: var(--gold-light);
+      font-weight: 600;
+    }
+
+    /* ── Prayer cards grid ── */
+    .prayers-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 16px 16px 0;
+      flex: 1;
+    }
+
+    .prayer-card {
+      background: var(--green-card);
+      border: 1px solid var(--green-border);
+      border-radius: 14px;
+      padding: 16px;
+      position: relative;
+      transition: border-color 0.3s;
+    }
+
+    .prayer-card.is-next {
+      border-color: var(--gold);
+      background: var(--green-mid);
+    }
+
+    .prayer-card.is-past {
+      opacity: 0.5;
+    }
+
+    .prayer-card .p-name {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .prayer-card.is-next .p-name {
+      color: var(--gold);
+    }
+
+    .prayer-card .p-time {
+      font-size: 22px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-primary);
+    }
+
+    .prayer-card .p-arabic {
+      font-size: 18px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    .prayer-card.is-next .p-time {
+      color: var(--gold-light);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green-accent);
+      position: absolute;
+      top: 14px;
+      right: 14px;
+    }
+
+    .prayer-card.is-next .status-dot {
+      background: var(--gold);
+      box-shadow: 0 0 6px var(--gold);
+    }
+
+    .prayer-card.is-past .status-dot {
+      background: var(--green-border);
+    }
+
+    /* ── Jumu'ah banner ── */
+    .jumuah-banner {
+      margin: 12px 16px 0;
+      padding: 12px 16px;
+      background: var(--green-dark);
+      border: 1px solid var(--green-border);
+      border-radius: 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+      display: none;
+    }
+
+    .jumuah-banner.visible {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .jumuah-icon { font-size: 18px; }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 14px 16px calc(env(safe-area-inset-bottom, 0) + 16px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .updated {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .refresh-btn {
+      background: none;
+      border: 1px solid var(--green-border);
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .refresh-btn:active {
+      background: var(--green-card);
+    }
+
+    /* ── Error state ── */
+    .error-msg {
+      margin: 20px 16px;
+      padding: 14px;
+      background: rgba(180,60,40,0.15);
+      border: 1px solid rgba(180,60,40,0.4);
+      border-radius: 12px;
+      font-size: 13px;
+      color: #e07060;
+      display: none;
+    }
+
+    /* ── Arabic prayer names ── */
+    .arabic {
+      font-family: 'Scheherazade New', 'Traditional Arabic', serif;
+    }
+
+    /* ── Loading state ── */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--green-deep);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--text-muted);
+      z-index: 10;
+    }
+
+    .loading-overlay.hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading">Loading prayer times…</div>
+
+<div class="header">
+  <div class="mosque-name">Masjid Ali</div>
+  <div class="mosque-sub">Scarborough, ON</div>
+  <div class="date-row">
+    <div class="date-display" id="date-display"></div>
+    <div class="clock" id="clock"></div>
+  </div>
+</div>
+
+<div class="next-banner" id="next-banner">
+  <div class="next-label">Next Prayer</div>
+  <div class="next-prayer-name" id="next-name">—</div>
+  <div class="next-time" id="next-time">—</div>
+  <div class="countdown" id="countdown"></div>
+</div>
+
+<div id="error-msg" class="error-msg">
+  Could not load prayer times. Please check your connection and try again.
+</div>
+
+<div class="prayers-grid" id="prayers-grid"></div>
+
+<div class="jumuah-banner" id="jumuah-banner">
+  <span class="jumuah-icon">🕌</span>
+  <span>Today is <strong>Jumu'ah</strong> (Friday). Remember the congregational prayer!</span>
+</div>
+
+<div class="footer">
+  <div class="updated" id="updated-label">Fetching times…</div>
+  <button class="refresh-btn" onclick="loadPrayerTimes()">↻ Refresh</button>
+</div>
+
+<script>
+const PRAYER_TIMES_URL = '/prayer-times.json';
+
+const PRAYERS = [
+  { key: 'fajr',    label: 'Fajr',    arabic: 'الفجر'  },
+  { key: 'dhuhr',   label: 'Dhuhr',   arabic: 'الظهر'  },
+  { key: 'asr',     label: 'Asr',     arabic: 'العصر'  },
+  { key: 'maghrib', label: 'Maghrib', arabic: 'المغرب' },
+  { key: 'isha',    label: 'Isha',    arabic: 'العشاء'  },
+];
+
+let prayerData = null;
+
+function timeToMinutes(str) {
+  const [h, m] = str.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function formatTime(str) {
+  const [h, m] = str.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const dh = h % 12 || 12;
+  return `${dh}:${m.toString().padStart(2, '0')} ${period}`;
+}
+
+function getNowMinutes() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
+}
+
+function getNextPrayer(prayers) {
+  const now = getNowMinutes();
+  for (const p of PRAYERS) {
+    if (!prayers[p.key]) continue;
+    const pm = timeToMinutes(prayers[p.key]);
+    if (pm > now) return { ...p, time: prayers[p.key], minutes: pm };
+  }
+  // All prayers done, next is Fajr tomorrow
+  const fajr = PRAYERS[0];
+  return { ...fajr, time: prayers[fajr.key], minutes: timeToMinutes(prayers[fajr.key]), tomorrow: true };
+}
+
+function formatCountdown(minutesLeft) {
+  if (minutesLeft <= 0) return 'Starting now';
+  const h = Math.floor(minutesLeft / 60);
+  const m = minutesLeft % 60;
+  if (h === 0) return `${m} minute${m !== 1 ? 's' : ''} away`;
+  return `${h}h ${m}m away`;
+}
+
+function renderPrayers(prayers) {
+  const grid = document.getElementById('prayers-grid');
+  const now = getNowMinutes();
+  const next = getNextPrayer(prayers);
+  grid.innerHTML = '';
+
+  PRAYERS.forEach(p => {
+    if (!prayers[p.key]) return;
+    const pm = timeToMinutes(prayers[p.key]);
+    const isPast = pm < now && !(next.key === p.key && next.tomorrow);
+    const isNext = p.key === next.key && !next.tomorrow;
+
+    const card = document.createElement('div');
+    card.className = `prayer-card${isNext ? ' is-next' : ''}${isPast ? ' is-past' : ''}`;
+    card.innerHTML = `
+      <div class="status-dot"></div>
+      <div class="p-name">${p.label}</div>
+      <div class="p-time">${formatTime(prayers[p.key])}</div>
+      <div class="p-arabic arabic">${p.arabic}</div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Next prayer banner
+  document.getElementById('next-name').textContent = next.label + (next.tomorrow ? ' (tomorrow)' : '');
+  document.getElementById('next-time').textContent = formatTime(next.time);
+
+  const nowMins = getNowMinutes();
+  let diff = next.minutes - nowMins;
+  if (next.tomorrow) diff += 1440;
+  document.getElementById('countdown').innerHTML = `<span>${formatCountdown(diff)}</span>`;
+
+  // Jumu'ah
+  const isFriday = new Date().getDay() === 5;
+  document.getElementById('jumuah-banner').classList.toggle('visible', isFriday);
+}
+
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes().toString().padStart(2, '0');
+  const s = now.getSeconds().toString().padStart(2, '0');
+  const period = h >= 12 ? 'PM' : 'AM';
+  const dh = h % 12 || 12;
+  document.getElementById('clock').textContent = `${dh}:${m}:${s} ${period}`;
+
+  if (prayerData) renderPrayers(prayerData);
+}
+
+function updateDate() {
+  const now = new Date();
+  const opts = { weekday: 'long', month: 'long', day: 'numeric' };
+  document.getElementById('date-display').textContent = now.toLocaleDateString('en-CA', opts);
+}
+
+async function loadPrayerTimes() {
+  try {
+    const res = await fetch(PRAYER_TIMES_URL + '?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    prayerData = data.prayers;
+
+    renderPrayers(prayerData);
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('error-msg').style.display = 'none';
+
+    const scraped = new Date(data.date);
+    const ago = Math.round((Date.now() - scraped.getTime()) / 60000);
+    document.getElementById('updated-label').textContent =
+      ago < 2 ? 'Just updated' :
+      ago < 60 ? `Updated ${ago}m ago` :
+      `Updated ${Math.round(ago/60)}h ago`;
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('error-msg').style.display = 'block';
+  }
+}
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(console.error);
+}
+
+// Init
+updateDate();
+updateClock();
+setInterval(updateClock, 1000);
+loadPrayerTimes();
+</script>
+</body>
+</html>
