@@ -1,9 +1,6 @@
 // Masjid Ali — Lock Screen Widget
 // Scriptable app — Circular lock screen widget
-// Shows next prayer time + name
-//
-// SETUP: Replace the URL below with your own after completing the main app setup
-// It should look like: https://raw.githubusercontent.com/YOUR_USERNAME/masjid-ali/main/public/prayer-times.json
+// Shows next prayer name, time, and countdown
 
 const PRAYER_TIMES_URL = "https://raw.githubusercontent.com/papapatel911-glitch/masjid-ali/main/public/prayer-times.json";
 
@@ -25,7 +22,7 @@ function formatTime(str) {
   const h = parts[0], m = parts[1];
   const period = h >= 12 ? "PM" : "AM";
   const dh = h % 12 || 12;
-  return `${dh}:${m.toString().padStart(2, "0")}`;
+  return dh + ":" + m.toString().padStart(2, "0");
 }
 
 function getNowMins() {
@@ -40,7 +37,6 @@ function getNext(prayers) {
     const pm = timeToMins(prayers[p.key]);
     if (pm > now) return { ...p, time: prayers[p.key] };
   }
-  // All done today — show Fajr (tomorrow)
   const fajr = PRAYERS[0];
   return { ...fajr, time: prayers[fajr.key], tomorrow: true };
 }
@@ -59,49 +55,54 @@ async function run() {
   }
 
   const widget = new ListWidget();
-  widget.backgroundColor = new Color("#00000000"); // transparent
+  widget.backgroundColor = new Color("#00000000");
 
   if (error || !next) {
-    // Error state
+    const stack = widget.addStack();
+    stack.layoutVertically();
+    stack.centerAlignContent();
+    const icon = stack.addText("Masjid Ali");
+    icon.font = Font.systemFont(10);
+    icon.textColor = Color.white();
+    icon.centerAlignText();
+  } else {
     const stack = widget.addStack();
     stack.layoutVertically();
     stack.centerAlignContent();
 
-    const icon = stack.addText("🕌");
-    icon.font = Font.systemFont(20);
-    icon.centerAlignText();
-
-    stack.addSpacer(2);
-
-    const label = stack.addText("—");
+    // Prayer name
+    const label = stack.addText(next.label + (next.tomorrow ? " tmrw" : ""));
     label.font = Font.boldSystemFont(11);
     label.textColor = Color.white();
     label.centerAlignText();
+    label.minimumScaleFactor = 0.7;
 
-  } else {
-    // Normal state — show time + prayer name label
-    const stack = widget.addStack();
-    stack.layoutVertically();
-    stack.centerAlignContent();
+    stack.addSpacer(1);
 
-    // Time (main number — big)
+    // Prayer time
     const timeText = stack.addText(formatTime(next.time));
-    timeText.font = Font.boldSystemFont(15);
+    timeText.font = Font.boldSystemFont(13);
     timeText.textColor = Color.white();
     timeText.centerAlignText();
     timeText.minimumScaleFactor = 0.7;
 
-    stack.addSpacer(2);
+    stack.addSpacer(1);
 
-    // Prayer name label
-    const label = stack.addText(next.label + (next.tomorrow ? " ↑" : ""));
-    label.font = Font.mediumSystemFont(11);
-    label.textColor = new Color("#ffffff", 0.85);
-    label.centerAlignText();
-    label.minimumScaleFactor = 0.8;
+    // Countdown — "in 1h 45m" or "in 45m"
+    const now = getNowMins();
+    let diff = timeToMins(next.time) - now;
+    if (next.tomorrow) diff += 1440;
+    const hrs = Math.floor(diff / 60);
+    const mins = diff % 60;
+    const countdownStr = hrs > 0 ? "in " + hrs + "h " + mins + "m" : "in " + mins + "m";
+
+    const countdown = stack.addText(countdownStr);
+    countdown.font = Font.mediumSystemFont(10);
+    countdown.textColor = new Color("#ffffff", 0.75);
+    countdown.centerAlignText();
+    countdown.minimumScaleFactor = 0.7;
   }
 
-  // For previewing in app
   if (config.runsInApp) {
     widget.presentAccessoryCircular();
   }
@@ -111,3 +112,4 @@ async function run() {
 }
 
 await run();
+
