@@ -1,11 +1,11 @@
 {
-  "date": "2026-05-09T19:05:48.919Z",
+  "date": "2026-05-10T03:34:05.358Z",
   "scraped_from": "https://masjidali.ca/prayer-services/",
   "prayers": {
     "fajr": "05:30",
     "dhuhr": "13:45",
     "asr": "18:30",
-    "maghrib": "20:29",
+    "maghrib": "20:30",
     "isha": "22:00"
   }
 }
