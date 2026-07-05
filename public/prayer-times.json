@@ -1,5 +1,6 @@
 {
-  "date": "2026-07-04T19:17:14.486Z",
+  "date": "2026-07-05T03:06:34.687Z",
+  "date_local": "2026-07-04",
   "scraped_from": "https://masjidali.ca/prayer-services/",
   "prayers": {
     "fajr": "05:10",
@@ -7,5 +8,15 @@
     "asr": "18:45",
     "maghrib": "21:02",
     "isha": "22:40"
+  },
+  "jumuah": {
+    "first": {
+      "khutbah": "13:30",
+      "salah": "14:00"
+    },
+    "second": {
+      "khutbah": "14:35",
+      "salah": "14:55"
+    }
   }
 }

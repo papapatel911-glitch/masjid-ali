@@ -9,6 +9,8 @@
   <meta name="theme-color" content="#0d1f14">
   <title>Masjid Ali — Prayer Times</title>
   <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -73,6 +75,16 @@
     .date-display {
       font-size: 14px;
       color: var(--text-muted);
+    }
+
+    .hijri-date {
+      font-size: 12px;
+      color: var(--gold-light);
+      margin-top: 3px;
+    }
+
+    .updated.stale {
+      color: var(--gold);
     }
 
     .clock {
@@ -295,6 +307,7 @@
     <div class="date-display" id="date-display"></div>
     <div class="clock" id="clock"></div>
   </div>
+  <div class="hijri-date" id="hijri-date"></div>
 </div>
 
 <div class="next-banner" id="next-banner">
@@ -312,7 +325,7 @@
 
 <div class="jumuah-banner" id="jumuah-banner">
   <span class="jumuah-icon">🕌</span>
-  <span>Today is <strong>Jumu'ah</strong> (Friday). Remember the congregational prayer!</span>
+  <span id="jumuah-text">Today is <strong>Jumu'ah</strong> (Friday). Remember the congregational prayer!</span>
 </div>
 
 <div class="footer">
@@ -332,6 +345,7 @@ const PRAYERS = [
 ];
 
 let prayerData = null;
+let jumuahData = null;
 
 function timeToMinutes(str) {
   const [h, m] = str.split(':').map(Number);
@@ -405,10 +419,29 @@ function renderPrayers(prayers) {
   // Jumu'ah
   const isFriday = new Date().getDay() === 5;
   document.getElementById('jumuah-banner').classList.toggle('visible', isFriday);
+  if (isFriday && jumuahData?.first?.khutbah) {
+    let html = `<strong>Jumu'ah today</strong> — 1st: Khutbah ${formatTime(jumuahData.first.khutbah)}`;
+    if (jumuahData.first.salah) html += `, Salah ${formatTime(jumuahData.first.salah)}`;
+    if (jumuahData.second?.khutbah) {
+      html += ` &nbsp;·&nbsp; 2nd: Khutbah ${formatTime(jumuahData.second.khutbah)}`;
+      if (jumuahData.second.salah) html += `, Salah ${formatTime(jumuahData.second.salah)}`;
+    }
+    document.getElementById('jumuah-text').innerHTML = html;
+  }
 }
+
+let currentDayKey = new Date().toDateString();
 
 function updateClock() {
   const now = new Date();
+
+  // Roll over to the new day at midnight without a manual refresh
+  if (now.toDateString() !== currentDayKey) {
+    currentDayKey = now.toDateString();
+    updateDate();
+    loadPrayerTimes();
+  }
+
   const h = now.getHours();
   const m = now.getMinutes().toString().padStart(2, '0');
   const s = now.getSeconds().toString().padStart(2, '0');
@@ -423,6 +456,11 @@ function updateDate() {
   const now = new Date();
   const opts = { weekday: 'long', month: 'long', day: 'numeric' };
   document.getElementById('date-display').textContent = now.toLocaleDateString('en-CA', opts);
+
+  try {
+    document.getElementById('hijri-date').textContent =
+      new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }).format(now);
+  } catch (e) { /* older browsers without Islamic calendar support */ }
 }
 
 async function loadPrayerTimes() {
@@ -431,17 +469,26 @@ async function loadPrayerTimes() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     prayerData = data.prayers;
+    jumuahData = data.jumuah || null;
 
     renderPrayers(prayerData);
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('error-msg').style.display = 'none';
 
-    const scraped = new Date(data.date);
-    const ago = Math.round((Date.now() - scraped.getTime()) / 60000);
-    document.getElementById('updated-label').textContent =
-      ago < 2 ? 'Just updated' :
-      ago < 60 ? `Updated ${ago}m ago` :
-      `Updated ${Math.round(ago/60)}h ago`;
+    const label = document.getElementById('updated-label');
+    const todayLocal = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+    if (data.date_local && data.date_local !== todayLocal) {
+      label.textContent = `⚠ Times from ${data.date_local} — today's update pending`;
+      label.classList.add('stale');
+    } else {
+      label.classList.remove('stale');
+      const scraped = new Date(data.date);
+      const ago = Math.round((Date.now() - scraped.getTime()) / 60000);
+      label.textContent =
+        ago < 2 ? 'Just updated' :
+        ago < 60 ? `Updated ${ago}m ago` :
+        `Updated ${Math.round(ago/60)}h ago`;
+    }
 
   } catch (err) {
     console.error(err);

@@ -101,6 +101,26 @@ function extractFromText(text) {
   return result;
 }
 
+// Extract Jumu'ah (Friday prayer) times, e.g.
+// "First Jummah Khutbah Time 1:30 Pm ... Second Jummah Salah Time 2:55 Pm"
+function extractJumuah(text) {
+  const clean = text
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ');
+
+  const grab = (label) => {
+    const re = new RegExp(label + '[^\\d]{0,20}(\\d{1,2}:\\d{2}\\s*(?:am|pm)?)', 'i');
+    const m = clean.match(re);
+    return m ? parseTime(m[1]) : null;
+  };
+
+  return {
+    first:  { khutbah: grab('first\\s+jum\\S*\\s+khutbah'),  salah: grab('first\\s+jum\\S*\\s+salah')  },
+    second: { khutbah: grab('second\\s+jum\\S*\\s+khutbah'), salah: grab('second\\s+jum\\S*\\s+salah') },
+  };
+}
+
 // Fallback: find all times in document and map them to prayer order
 function extractFallback(text) {
   const clean = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
@@ -155,12 +175,15 @@ async function scrapePrayerTimes() {
     prayers.maghrib = sunset || null;
   }
 
-  return prayers;
+  const jumuah = extractJumuah(html);
+  console.log(`  → Jumu'ah: 1st khutbah ${jumuah.first.khutbah || '?'}, 2nd khutbah ${jumuah.second.khutbah || '?'}`);
+
+  return { prayers, jumuah };
 }
 
 async function main() {
   try {
-    const prayers = await scrapePrayerTimes();
+    const { prayers, jumuah } = await scrapePrayerTimes();
 
     const missing = ['fajr','dhuhr','asr','maghrib','isha'].filter(k => !prayers[k]);
     if (missing.length > 3) {
@@ -172,6 +195,8 @@ async function main() {
 
     const output = {
       date: new Date().toISOString(),
+      // Calendar date these times belong to, in the masjid's timezone
+      date_local: new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' }),
       scraped_from: 'https://masjidali.ca/prayer-services/',
       prayers: {
         fajr:    prayers.fajr    || null,
@@ -179,7 +204,8 @@ async function main() {
         asr:     prayers.asr     || null,
         maghrib: prayers.maghrib || null,
         isha:    prayers.isha    || null,
-      }
+      },
+      jumuah
     };
 
     const outputPath = path.join(__dirname, '..', 'public', 'prayer-times.json');
