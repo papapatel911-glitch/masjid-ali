@@ -1,12 +1,12 @@
 {
-  "date": "2026-08-23T18:31:49.247Z",
+  "date": "2026-08-24T01:23:56.638Z",
   "date_local": "2026-08-23",
   "scraped_from": "https://masjidali.ca/prayer-services/",
   "prayers": {
     "fajr": "05:45",
     "dhuhr": "13:45",
     "asr": "18:30",
-    "maghrib": "20:08",
+    "maghrib": "20:06",
     "isha": "22:10"
   },
   "jumuah": {
