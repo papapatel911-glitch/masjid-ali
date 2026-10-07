@@ -154,8 +154,8 @@ function extractFallback(text) {
 }
 
 async function scrapePrayerTimes() {
-  console.log('Fetching https://masjidali.ca/prayer-services/ ...');
-  const html = await fetchUrl('https://masjidali.ca/prayer-services/');
+  console.log('Fetching https://masjidali.ca/salah-timing/ ...');
+  const html = await fetchUrl('https://masjidali.ca/salah-timing/');
 
   console.log('Extracting prayer times...');
   let prayers = extractFromText(html);
@@ -197,7 +197,7 @@ async function main() {
       date: new Date().toISOString(),
       // Calendar date these times belong to, in the masjid's timezone
       date_local: new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' }),
-      scraped_from: 'https://masjidali.ca/prayer-services/',
+      scraped_from: 'https://masjidali.ca/salah-timing/',
       prayers: {
         fajr:    prayers.fajr    || null,
         dhuhr:   prayers.dhuhr   || null,
