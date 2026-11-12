@@ -1,12 +1,12 @@
 {
-  "date": "2026-11-11T13:45:15.415Z",
+  "date": "2026-11-12T00:12:30.248Z",
   "date_local": "2026-11-11",
   "scraped_from": "https://masjidali.ca/salah-timing/",
   "prayers": {
     "fajr": "06:10",
     "dhuhr": null,
     "asr": "15:40",
-    "maghrib": "16:55",
+    "maghrib": "16:54",
     "isha": "18:35"
   },
   "jumuah": {
